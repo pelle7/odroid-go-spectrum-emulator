@@ -48,6 +48,8 @@ volatile int spvk_after_switch = 0;
 
 //static char *kbstate;
 static char kbstate[LASTKEYCODE];  // bjs re-alloc this.
+odroid_gamepad_state previousState;
+static bool ignoreMenuButton = 0;
 
 void keyboard_update()  // bjs manually mapped for Manic Miner for now
 {
@@ -62,19 +64,22 @@ void keyboard_update()  // bjs manually mapped for Manic Miner for now
 
 //djk
 //---------------------------------------
-//  if (previousState.values[ODROID_INPUT_VOLUME] && !joystick.values[ODROID_INPUT_VOLUME])
-  if (joystick.values[ODROID_INPUT_VOLUME])
+  if (previousState.values[ODROID_INPUT_VOLUME] && !joystick.values[ODROID_INPUT_VOLUME])
   {
     odroid_audio_volume_change();
     printf("main: Volume=%d\n", odroid_audio_volume_get());
   }
 
-//  if (!ignoreMenuButton && previousState.values[ODROID_INPUT_MENU] && !joystick.values[ODROID_INPUT_MENU])
-  if (joystick.values[ODROID_INPUT_MENU])
+  if (!ignoreMenuButton && previousState.values[ODROID_INPUT_MENU] && !joystick.values[ODROID_INPUT_MENU])
   {
-//TODO    DoHome();
+//TODO    DoHome(); //goto menu?
   }
 //---------------------------------------
+
+  odroid_input_gamepad_read(&previousState);
+
+  ignoreMenuButton = previousState.values[ODROID_INPUT_MENU];
+
 }
 
 

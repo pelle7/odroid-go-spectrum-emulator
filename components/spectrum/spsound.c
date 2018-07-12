@@ -46,6 +46,8 @@ int sound_to_autoclose = 1;
 int sound_sample_rate = 0;
 int sound_dsp_setfrag = 1;
 
+uint16_t* audioBuf = NULL;
+
 #ifdef HAVE_SOUND
 
 #include <stdlib.h>
@@ -199,7 +201,13 @@ static void process_sound(void)
 //djk
 //------------------------------------------
   //convert to 16bit stereo buffer for odroid_common to process
-  static short audioBuf[TMNUM * 2];
+
+  if (!audioBuf)
+    {
+      size_t bufferSize = TMNUM * 2 * sizeof(short);
+      audioBuf = heap_caps_malloc(bufferSize, MALLOC_CAP_8BIT | MALLOC_CAP_DMA);
+    }
+//  static short audioBuf[TMNUM * 2];
 
   for (short i = 0; i < TMNUM; i ++)
   {
