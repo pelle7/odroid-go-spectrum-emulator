@@ -41,8 +41,9 @@ or replace esp-idf/components/driver/sdspi_host.c with the one included here.
 2) long filename support - edit the file:
 esp-idf/components/fatfs/src/ffconf.h
 and add a couple of lines:
-  #define CONFIG_FATFS_LFN_HEAP 1
-  #define FF_MAX_LFN 255
+
+>  #define CONFIG_FATFS_LFN_HEAP 1
+>  #define FF_MAX_LFN 255
 
 (reference for 1) and 2):  https://forum.odroid.com/viewtopic.php?f=160&t=31383)
 
