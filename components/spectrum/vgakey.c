@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright (C) 1996-1998 Szeredi Miklos
  * Email: mszeredi@inf.bme.hu
  *
@@ -29,8 +29,24 @@
 
 #include <stdlib.h>
 
+extern int menu();
+extern void kb_blank();
+extern void kb_set();
+
+extern int b_up,b_down,b_left,b_right,b_a,b_b,b_start,b_select;
+int pressed=0;  // used for de-bouncing buttons
+int kbpos=0; // virtual keyboard position
+
 const int need_switch_mode = 1;
 volatile int spvk_after_switch = 0;
+
+
+const int map[40]={
+2,3,4,5,6,7,8,9,10,11,
+16,17,18,19,20,21,22,23,24,25,
+30,31,32,33,34,35,36,37,38,28,
+42,44,45,46,47,48,49,50,54,57
+};
 
 
 #define LASTKEYCODE 111
@@ -46,40 +62,75 @@ volatile int spvk_after_switch = 0;
 #define KC_L_ALT 56
 #define KC_R_ALT 100
 
-//static char *kbstate;
-static char kbstate[LASTKEYCODE];  // bjs re-alloc this.
-odroid_gamepad_state previousState;
-static bool ignoreMenuButton = 0;
+static char kbstate[LASTKEYCODE];
 
-void keyboard_update()  // bjs manually mapped for Manic Miner for now
+void keyboard_update()
 {
   odroid_gamepad_state joystick;
-
-  odroid_input_gamepad_read(&joystick);
-
-  if (joystick.values[ODROID_INPUT_START])  kbstate[28]=1; else kbstate[28]=0; // 'ENTER' key
-  if (joystick.values[ODROID_INPUT_LEFT])   kbstate[24]=1; else kbstate[24]=0; // 'o' key
-  if (joystick.values[ODROID_INPUT_RIGHT])  kbstate[25]=1; else kbstate[25]=0; // 'p' key
-  if (joystick.values[ODROID_INPUT_A])      kbstate[44]=1; else kbstate[44]=0; // 'z' key
-
-//djk
+  int i;
+  
+  for (i=0; i<LASTKEYCODE; i++) kbstate[i]=0;  
+  odroid_input_gamepad_read(&joystick); 
+  // first, process volume button...
+  
+  //djk
 //---------------------------------------
-  if (previousState.values[ODROID_INPUT_VOLUME] && !joystick.values[ODROID_INPUT_VOLUME])
+  if (!pressed && joystick.values[ODROID_INPUT_VOLUME])
   {
+    pressed=1;
     odroid_audio_volume_change();
     printf("main: Volume=%d\n", odroid_audio_volume_get());
   }
 
-  if (!ignoreMenuButton && previousState.values[ODROID_INPUT_MENU] && !joystick.values[ODROID_INPUT_MENU])
-  {
-//TODO    DoHome(); //goto menu?
+//---------------------------------------   
+  
+  // 2 different approaches depending if virtual keyboard is actice...  
+  if (!keyboard) {      
+    if (joystick.values[ODROID_INPUT_UP])     kbstate[map[b_up]]=1;
+    if (joystick.values[ODROID_INPUT_DOWN])   kbstate[map[b_down]]=1; 
+    if (joystick.values[ODROID_INPUT_LEFT])   kbstate[map[b_left]]=1;
+    if (joystick.values[ODROID_INPUT_RIGHT])  kbstate[map[b_right]]=1; 
+    if (joystick.values[ODROID_INPUT_A])      kbstate[map[b_a]]=1; 
+    if (joystick.values[ODROID_INPUT_B])      kbstate[map[b_b]]=1; 
+    if (joystick.values[ODROID_INPUT_SELECT]) kbstate[map[b_select]]=1; 
+    if (joystick.values[ODROID_INPUT_START])  kbstate[map[b_start]]=1;
+    if (joystick.values[ODROID_INPUT_MENU])   menu();
   }
-//---------------------------------------
-
-  odroid_input_gamepad_read(&previousState);
-
-  ignoreMenuButton = previousState.values[ODROID_INPUT_MENU];
-
+  else {
+    if (!pressed && joystick.values[ODROID_INPUT_UP]) {     
+      kb_blank(); kbpos-=10; if (kbpos<0) kbpos+=40;
+      kb_set(); pressed=1;
+    }
+    if (!pressed && joystick.values[ODROID_INPUT_DOWN]) {     
+      kb_blank(); kbpos+=10; if (kbpos>39) kbpos-=40;
+      kb_set(); pressed=1;
+    }
+    if (!pressed && joystick.values[ODROID_INPUT_LEFT]) {     
+      kb_blank(); kbpos--; if (kbpos%10==9 || kbpos==-1) kbpos+=10;
+      kb_set(); pressed=1;
+    }
+    if (!pressed && joystick.values[ODROID_INPUT_RIGHT]) {     
+      kb_blank(); kbpos++; if (kbpos%10==0) kbpos-=10;
+      kb_set(); pressed=1;
+    }
+    
+    if (joystick.values[ODROID_INPUT_A]) kbstate[map[kbpos]]=1;
+    if (joystick.values[ODROID_INPUT_SELECT]) kbstate[map[30]]=1; // CAPS-shift
+    if (joystick.values[ODROID_INPUT_START]) kbstate[map[38]]=1; // sym-shift
+    
+    if (joystick.values[ODROID_INPUT_B] ||
+        joystick.values[ODROID_INPUT_MENU]) {keyboard=0; lastborder=100;}
+    
+        
+  }
+  if (pressed &&
+       !joystick.values[ODROID_INPUT_UP] &&
+       !joystick.values[ODROID_INPUT_DOWN] &&
+       !joystick.values[ODROID_INPUT_LEFT] &&
+       !joystick.values[ODROID_INPUT_RIGHT] &&
+       !joystick.values[ODROID_INPUT_VOLUME]
+       ) pressed=0;
+  
 }
 
 
@@ -303,11 +354,6 @@ void spkb_process_events(int evenframe)
 }
 
 //---------------------------------------------------
-
-static void close_spect_key(void)
-{
-  spkb_close();
-}
 
 void init_spect_key(void)
 {

@@ -37,7 +37,6 @@ extern volatile int16_t* currentAudioBufferPtr;
 extern QueueHandle_t audioQueue;
 
 int bufframes = 4;
-int buffpos = 0; // bjs
 
 int sound_avail = 0;
 int sound_on = 1;
@@ -60,7 +59,9 @@ uint16_t* audioBuf = NULL;
 #include <sys/types.h>
 #include <sys/time.h>
 
-#define SKIPTIME 5000
+//#define SKIPTIME 5000
+#define SKIPTIME 20000 // 50fps, 20ms per frame, or 20,000us
+
 
 #define AUTOCLOSET 5
 static int autocloset;
@@ -213,7 +214,6 @@ static void process_sound(void)
   {
     int32_t sample = sp_sound_buf[i];
     sample <<= 7; //convert to 16bit (also affects volume, reduced to 7 as too loud!)
-
     int32_t dac0 = sample;
     const int32_t dac1 = 0x8000; //prevent PAM muting audio
 

@@ -68,15 +68,16 @@ struct rgb custom_colors[COLORNUM]={
 volatile int screen_visible = 1;
 volatile int accept_keys = 1;
 
-int lastborder=100;
+int lastborder=100,skip=0;
 
 extern int buffpos;  // audio buffer position
+extern int keyboard; // on-screen keyboard active?
 
 //-------------------------------------------------------------------------------------------
 byte *update_screen_line(byte *scrp, int coli, int scri, int border,
 			 qbyte *cmarkp)
 {
-  unsigned short  buffer[256*4]; // line of pixels...
+  extern unsigned short  *buffer; // screen buffer, 16 bit pixels
   int addr,attr,i,d,y,paper=0,ink=0,tmp;
   byte a=0;
   unsigned short *b;
@@ -104,16 +105,34 @@ byte *update_screen_line(byte *scrp, int coli, int scri, int border,
   
   // first, see if border colour changed, update only if so (for speed..)
   if (scri>0 && coli==0) { // start of new frame....
-   // if (border!=lastborder) {update_border(border); lastborder=border;}
-    // reset draw window...
-    
-    //setwindow();   // 256x192 mid screen, ready for pixels...
-    send_reset_drawing(32, 24, 256, 192);
+     if (border!=lastborder && skip==1) { // redraw border first..
+      for (i=0; i<7360; i++) buffer[i]=colours[border];
+      if (!keyboard) {
+        send_reset_drawing(0, 0, 320, 24); //  320x24 pixels at top
+        ili9341_write_frame_rectangle2(buffer,7680);	
+        send_reset_drawing(0, 216, 320, 24); //  320x24 pixels at bottom
+        ili9341_write_frame_rectangle2(buffer,7680);
+      }
+      if (!keyboard) send_reset_drawing(0, 24, 32, 192); 
+                else send_reset_drawing(0, 0, 32, 192);
+      
+      ili9341_write_frame_rectangle2(buffer,6144); //  32x192 pixels at right
+      if (!keyboard) send_reset_drawing(288, 24, 32, 192); 
+                else send_reset_drawing(288, 0, 32, 192); 
+      ili9341_write_frame_rectangle2(buffer,6144); //  32x192 pixels at right
+          
+      lastborder=border; skip=0;
+     }
+     
+     // reset draw window for 256x192 main display...
+     if (!keyboard) send_reset_drawing(32, 24, 256, 192);
+              else send_reset_drawing(32, 0, 256, 192);
   }
+  if (coli==191) skip=1; // can now re-draw border next frame if required
   
   scrptr=scrp;
 
-  if (scri>0) { // normal lines only for now....    
+  if (scri>0 && skip) { // normal lines only for now....    
     y=coli;
     // screen address for pixels for this line...
     addr=y/64; y-=addr*64; addr*=8;
@@ -136,10 +155,8 @@ byte *update_screen_line(byte *scrp, int coli, int scri, int border,
       if (a%2==1) buffer[i+d]=paper; else buffer[i+d]=ink;
       a/=2;
     }
-    // now write out 256 16bit pixels to display over SPI....
-    //line(coli+24,buffer); // hook to external screen write.
-    //send_continue_line2(buffer, 256, 1);
-    if (coli%4==3) ili9341_write_frame_rectangle2(buffer);
+    // now write out 4x 256 16bit pixels to display over SPI....
+    if (coli%4==3) ili9341_write_frame_rectangle2(buffer,256*4);
    
   }
   return (byte *) scrptr;

@@ -36,8 +36,6 @@
 #include <ctype.h>
 #include <sys/types.h>
 
-
-#include "game.h" // bjs test
 #include "strings.h" // needed?
 
 #define COMPRESS_SAVE 1
@@ -563,18 +561,13 @@ void snsh_sna_load(SNFILE *fp)
 {
   struct sna_s sna;
 
-/*
+
   if(!read_header(&sna, sna_size, fp)) return;
 
   if(snread(z80_proc.mem+0x4000, 0xC000, fp) != 0xC000) 
     put_msg("Warning: Snapshot file too short");
   else if(sngetc(fp) != EOF) 
     put_msg("Warning: Snapshot file too long");
-*/
-
-  // bjs changes....
-  bcopy(game,&sna,27);
-  bcopy(game+27,z80_proc.mem+0x4000,49152);
 
   LOAD_NORMAL_REGS(sna);
 
@@ -683,7 +676,6 @@ void load_snapshot_file_type(char *name, int type)
   spcf_find_file_type(filenamebuf, &filetype, &type);
   if(type < 0) type = SN_Z80;
 
-  printf("here load...\n");
   snsh = fopen(filenamebuf, "rb");
   if(snsh == NULL) {
     sprintf(msgbuf, "Could not open snapshot file `%s', %s",
@@ -691,7 +683,6 @@ void load_snapshot_file_type(char *name, int type)
     put_msg(msgbuf);
     return;
   }
-  printf("here fopen worked\n");
   snfil.isfile = 1;
   snfil.fp = snsh;
 

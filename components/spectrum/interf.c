@@ -24,8 +24,7 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#define MAXMSGLEN 2048
-#define ODROID_GO 1
+#define MAXMSGLEN   2048
 
 char filenamebuf[MAXFILENAME];
 char msgbuf[MAXMSGLEN];
@@ -54,7 +53,7 @@ static char *get_filename_line(void)
 
   fgets(buf, MAXFILENAME, stdin);
   buf[MAXFILENAME-1] = '\0';
-
+  
   return buf;
 }
 
@@ -83,12 +82,12 @@ char *spif_get_tape_fileinfo(int *startp, int *nump)
 {
   char *name, *s;
   int res;
-
+  
   s = get_filename_line();
   for(; *s && isspace((int) *s); s++);
   name = s;
   for(; *s && isgraph((int) *s); s++);
-
+  
   if(name != s) res = 1;
   else res = 0;
 
@@ -125,13 +124,11 @@ static void clear_line(void)
 
 void put_msg(const char *msg)
 {
-#ifndef ODROID_GO
-  // bjs - redundant for ODROID
-  if(spif_can_print) {
-    clear_line();
-    fprintf(stderr, "%s\n", msg);
-  }
-#endif
+// bjs - redundant for ODROID
+//  if(spif_can_print) {
+//    clear_line();
+//    fprintf(stderr, "%s\n", msg);
+//  }
 }
 
 

@@ -26,6 +26,7 @@ extern int sound_avail;
 extern void setbufsize(void);
 
 extern void autoclose_sound(void);
+extern void init_spect_sound(void);
 extern void play_sound(int evenframe);
 
 extern int sound_on;

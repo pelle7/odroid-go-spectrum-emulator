@@ -49,11 +49,10 @@ void spti_init(void)
 void spti_sleep(unsigned long usecs)
 {
   struct timeval waittv;
-
+ 
   waittv.tv_sec = 0;
   waittv.tv_usec = usecs;
-  //select(0, NULL, NULL, NULL, &waittv);
-  //usleep(usecs); // bjs testing....
+  select(0, NULL, NULL, NULL, &waittv);
 }
 
 static struct timeval shouldbetv;

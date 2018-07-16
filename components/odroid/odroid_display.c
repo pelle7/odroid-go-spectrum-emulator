@@ -258,7 +258,6 @@ void send_continue_wait()
   }
 }
 
-//-----------------------------------------------------------
 void send_continue_line(uint16_t *line, int width, int lineCount)
 {
   esp_err_t ret;
@@ -302,41 +301,6 @@ void send_continue_line(uint16_t *line, int width, int lineCount)
   }
 #endif
 }
-
-//-----------------------------------------------------------
-void send_continue_line2(uint16_t *line, int width, int lineCount)
-{
-  esp_err_t ret;
-
-  // if (waitForTransactions)
-  // {
-  //   // Wait for all transactions
-  //   spi_transaction_t *rtrans;
-  //   for (int x = 0; x < 2; x++) {
-  //       ret=spi_device_get_trans_result(spi, &rtrans, 1000 / portTICK_RATE_MS);
-  //       assert(ret==ESP_OK);
-  //   }
-  //
-  //   waitForTransactions = false;
-  // }
-
-  //send_continue_wait();
-
-  trans[6].tx_data[0] = 0x3C;           //memory write continue
-  trans[6].length = 8;            //Data length, in bits
-  trans[6].flags = SPI_TRANS_USE_TXDATA;
-
-  trans[7].tx_buffer = line;            //finally send the line data
-  trans[7].length = width * lineCount * 2 * 8;            //Data length, in bits
-  trans[7].flags = 0; //undo SPI_TRANS_USE_TXDATA flag
-
-  //Queue all transactions.
-  for (int x = 6; x < 8; x++) {
-      ret=spi_device_queue_trans(spi, &trans[x], 1000 / portTICK_RATE_MS);
-      assert(ret==ESP_OK);
-  }
-}
-//-----------------------------------------------------
 
 static void backlight_init()
 {
@@ -445,6 +409,8 @@ static uint16_t Blend(uint16_t a, uint16_t b)
 void ili9341_write_frame_gb(uint16_t* buffer, int scale)
 {
     short x, y;
+
+    odroid_display_lock_gb_display();
 
     xTaskToNotify = xTaskGetCurrentTaskHandle();
 
@@ -592,6 +558,8 @@ void ili9341_write_frame_gb(uint16_t* buffer, int scale)
 
     send_continue_wait();
 
+    odroid_display_unlock_gb_display();
+
     //printf("FRAME: xs=%d, ys=%d, width=%d, height=%d, data=%p\n", xs, ys, width, height, data);
     //printf("sizeof(RGB565)=%d, sizeof(Pixel) =%d\n", sizeof(RGB565), sizeof(Pixel));
 }
@@ -643,7 +611,7 @@ void ili9341_init()
     devcfg.queue_size = 7;                          //We want to be able to queue 7 transactions at a time
     devcfg.pre_cb = ili_spi_pre_transfer_callback;  //Specify pre-transfer callback to handle D/C line
     devcfg.post_cb = ili_spi_post_transfer_callback;
-    devcfg.flags = SPI_DEVICE_HALFDUPLEX;
+    devcfg.flags = 0; //SPI_DEVICE_HALFDUPLEX;
 
     //Initialize the SPI bus
     ret=spi_bus_initialize(VSPI_HOST, &buscfg, 1);
@@ -1227,14 +1195,20 @@ void ili9341_write_frame_rectangle(short left, short top, short width, short hei
 
 
 //----------------------------------
-void ili9341_write_frame_rectangle2(uint16_t* buffer)
+void ili9341_write_frame_rectangle2(uint16_t* buffer, int size)
 {
+    int i=size;
+    
     xTaskToNotify = xTaskGetCurrentTaskHandle();
-
-    send_continue_line(buffer, 256, 4); // 8 lines instead of 1?
+    while(i>1024) {
+      send_continue_line(buffer, 1024, 1);
+      i-=1024;
+    }
+    send_continue_line(buffer, i, 1);
     send_continue_wait();
 }
 //--------------------------------------------------
+
 
 void ili9341_clear(uint16_t color)
 {
@@ -1329,4 +1303,43 @@ void odroid_display_show_splash()
 
         //printf("odroid_display_show_splash: removed pending transfer.\n");
     }
+}
+
+void odroid_display_drain_spi()
+{
+    // Drain SPI queue
+    xTaskToNotify = 0;
+
+    esp_err_t err = ESP_OK;
+
+    while(err == ESP_OK)
+    {
+        spi_transaction_t* trans_desc;
+        err = spi_device_get_trans_result(spi, &trans_desc, 0);
+
+        //printf("odroid_display_show_splash: removed pending transfer.\n");
+    }
+}
+
+SemaphoreHandle_t gb_mutex = NULL;
+
+void odroid_display_lock_gb_display()
+{
+    if (!gb_mutex)
+    {
+        gb_mutex = xSemaphoreCreateMutex();
+        if (!gb_mutex) abort();
+    }
+
+    if (xSemaphoreTake(gb_mutex, 1000 / portTICK_RATE_MS) != pdTRUE)
+    {
+        abort();
+    }
+}
+
+void odroid_display_unlock_gb_display()
+{
+    if (!gb_mutex) abort();
+
+    xSemaphoreGive(gb_mutex);
 }

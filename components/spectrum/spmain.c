@@ -27,8 +27,8 @@
 #include "sptiming.h"
 #include "spscr.h"
 #include "spkey.h"
-#include "spsound.h"
 #include "sptape.h"
+#include "spsound.h"
 #include "snapshot.h"
 #include "spver.h"
 
@@ -41,6 +41,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+
+#include "../odroid/odroid_sdcard.h"
 
 int endofsingle;
 
@@ -114,7 +116,7 @@ static void run_singlemode(void)
 
     halfsec = !(sp_int_ctr % 25);
     evenframe = !(sp_int_ctr & 1);
-    if(screen_visible) updateframe = sp_nosync ? halfsec :
+    if(screen_visible) updateframe = sp_nosync ? halfsec : 
       !((sp_int_ctr+SHOW_OFFS) % showframe);
     else updateframe = 0;
 
@@ -141,10 +143,9 @@ static void run_singlemode(void)
     sp_int_ctr++;
 
     if(!evenframe) rec_tape();
-    if(!sp_nosync) {
-      if(!sound_avail) spti_wait();
-
+    if(!sp_nosync) {    
       if(updateframe) update();
+      if(!sound_avail) spti_wait();
       play_sound(evenframe);
     }
     else if(updateframe) update();
@@ -185,7 +186,7 @@ void check_params(int argc, char *argv[])
       else {
 	fprintf(fp, "# This is the config file for spectemu.\n\n");
 	fclose(fp);
-
+	
 	sprintf(msgbuf, "Created '%s'", filenamebuf);
 	put_msg(msgbuf);
       }
@@ -211,7 +212,7 @@ static void init_load()
     load_snapshot_file_type(spcf_init_snapshot, spcf_init_snapshot_type);
     free_string(spcf_init_snapshot);
   }
-
+  
   if(spcf_init_tapefile != NULL) {
     sprintf(msgbuf, "Loading tape '%s'", spcf_init_tapefile);
     put_msg(msgbuf);
@@ -223,7 +224,7 @@ static void init_load()
 
 static void print_copyright(void)
 {
-  sprintf(msgbuf,
+  sprintf(msgbuf, 
 	  "Welcome to SPECTEMU version %s/%s (C) Szeredi Miklos 1996-1998", 
 	  SPECTEMU_VERSION, SPECTEMU_TYPE);
   put_msg(msgbuf);
@@ -235,16 +236,13 @@ static void print_copyright(void)
 
 void start_spectemu()
 {
-  FILE *fp;  // dummy for now...
-
-  spti_init();
+  spti_init(); 
   init_spect_scr();
 //  init_spect_sound();
   init_spect_key();
-
+  
   print_copyright(); // bjs irrelevant dumping to message buffer
   init_load();
 
-  snsh_sna_load(NULL);  // bjs load from game.h file for now...
   run_singlemode();
 }
