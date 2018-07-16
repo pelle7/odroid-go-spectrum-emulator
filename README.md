@@ -2,7 +2,7 @@
 
 Features
 
-- runs 100% speed, 256x192 screen and border emulated.
+- runs 100% speed, 256x192 screen,border,sound emulated.
 - load/save SNA and Z80 snapshot files
 - re-map buttons to spectrum keys, standard options available e.g. cursor keys
 - on-screen keyboard to simulate hunt-and-peck typing.
