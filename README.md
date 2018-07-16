@@ -69,3 +69,9 @@ SPI_CHECK((handle->cfg.flags & SPI_DEVICE_HALFDUPLEX) || trans_desc->rxlength <=
 is restored at power-on. per-game button mapping memory possible though.
 
 - It will try to load TAP and TXZ files, but wont work with them. Don't use these file type, OK?
+
+# Technical Information
+
+- based on the Spectemu emulator. Chosen as it already supports a 320x240 pixel screen.
+
+https://sourceforge.net/projects/spectemu/files/spectemu-stable/
