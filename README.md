@@ -56,7 +56,7 @@ SPI_CHECK((handle->cfg.flags & SPI_DEVICE_HALFDUPLEX) || trans_desc->rxlength <=
 
 (reference: https://forum.odroid.com/viewtopic.php?f=160&t=31494#p228315)
 
-#Knows bugs
+#Known bugs
 
 - wont load 16Kb snapshots (these are files <16Kb in size, '3D Death Chase' being
   a notable example.). Convert them to regular 48K snapshots in another emulator to load them
