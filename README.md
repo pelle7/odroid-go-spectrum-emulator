@@ -14,11 +14,14 @@ This assumess you have already built the ODROID-GO and set up an SD card to run 
 1) Rename the existing firmware.bin file on your SD card to something like firmware.saf, then download the firmware.bin file here in its place. 
 
 If there isn't already a firmware.bin file on your SD card you need to update the bootloader on your odroid - see 
+
 https://github.com/OtherCrashOverride/go-play/releases/tag/20180708
+
 and
+
 https://forum.odroid.com/viewtopic.php?f=158&t=31513
 
-2) While you have the SD card out of the ORDOID, make a new directory /roms/spectrium on the card and copy your snapshot files (SNA or Z80) in here.  Using subdirectories is fine.
+2) While you have the SD card out of the ODROID, make a new directory /roms/spectrum on the card and copy your snapshot files (SNA or Z80) in here.  Using subdirectories is fine.
 
 2) Switch off ORDOID-GO, hold down 'B' button and switch back on, keep  B button
 pressed for 5 seconds. If nothing happens you need to update the bootloader - see 1).
@@ -34,6 +37,7 @@ and folllow 2) again.
 You need the esp-idf build environemnt with a couple of modifications on top of it.
 
 1) SD card support - if you have not already downloaded the esp-idf fraamework, get the patched version by Crashoverride instead: 
+
 https://github.com/OtherCrashOverride/esp-idf/tree/release/v3.1-odroid
 
 or replace esp-idf/components/driver/sdspi_host.c with the one included here.
