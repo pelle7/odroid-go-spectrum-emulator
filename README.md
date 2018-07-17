@@ -22,14 +22,17 @@ and
 https://forum.odroid.com/viewtopic.php?f=158&t=31513
 
 2) While you have the SD card out of the ODROID, make a new directory /roms/spectrum on the card and copy your snapshot files (SNA or Z80) in here.  Using subdirectories is fine.
+You can get snapshot files from World of Spectrum:
 
-2) Switch off ORDOID-GO, hold down 'B' button and switch back on, keep  B button
+https://www.worldofspectrum.org/archive.html
+
+3) Switch off ORDOID-GO, hold down 'B' button and switch back on, keep  B button
 pressed for 5 seconds. If nothing happens you need to update the bootloader - see 1).
 
 press the 'start' button to flash the spectrum firmware.
 
 To go back to the existing emulators, copy firmware.saf back to firmware.bin
-and folllow 2) again.
+and folllow 3) again.
 
 ---
 #Building from source.
