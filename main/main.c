@@ -433,7 +433,7 @@ int menu()
   keyboard=0; // make sure virtual keyboard swtiched off now
   ili9341_clear(0); // clear screen
   printx2(0,0,"ZX Spectrum Emulator");
-  printx2(4,6,"Virtual Keyboard");
+  printx2(4,6,"Keyboard");
   printx2(4,9,"Load Snapshot");
   printx2(4,12,"Save Snapshot");
   printx2(4,15,"Setup Buttons");
@@ -557,11 +557,12 @@ void app_main(void)
     // see if there is a 'resume.txt' file, use it if so...
     
     if ((fp=fopen("/sd/roms/spectrum/resume.txt","r"))) {
-      fscanf(fp,"%s\n",path);
-      fscanf(fp,"%s\n",file);
+      fgets(path,sizeof path,fp); path[strlen(path)-1]=0;
+      fgets(file, sizeof file,fp); file[strlen(file)-1]=0; 
       fscanf(fp,"%i,%i,%i,%i,%i,%i,%i,%i\n",
 	     &b_up,&b_down,&b_left,&b_right,&b_a,&b_b,&b_select,&b_start);
       fclose(fp);
+      printf("resume=%s\n",file);
     }
 
     // Audio hardware

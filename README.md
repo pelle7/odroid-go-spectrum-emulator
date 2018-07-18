@@ -2,10 +2,11 @@
 
 Features
 
-- runs 100% speed, 256x192 screen,border,sound emulated.
+- Emulates 48K ZX Spectrum. Runs at 100% speed, 256x192 screen,border,sound emulated.
 - load/save SNA and Z80 snapshot files
 - re-map buttons to spectrum keys, standard options available e.g. cursor keys
 - on-screen keyboard to simulate hunt-and-peck typing.
+= fast startup (about 1 second), resume from last saved position.
 
 #Installing
 
@@ -22,9 +23,6 @@ and
 https://forum.odroid.com/viewtopic.php?f=158&t=31513
 
 2) While you have the SD card out of the ODROID, make a new directory /roms/spectrum on the card and copy your snapshot files (SNA or Z80) in here.  Using subdirectories is fine.
-You can get snapshot files from World of Spectrum:
-
-https://www.worldofspectrum.org/archive.html
 
 3) Switch off ORDOID-GO, hold down 'B' button and switch back on, keep  B button
 pressed for 5 seconds. If nothing happens you need to update the bootloader - see 1).
@@ -65,13 +63,13 @@ SPI_CHECK((handle->cfg.flags & SPI_DEVICE_HALFDUPLEX) || trans_desc->rxlength <=
 
 #Known bugs
 
-- wont load 16Kb snapshots (these are files <16Kb in size, '3D Death Chase' being
-  a notable example.). Convert them to regular 48K snapshots in another emulator to load them
+- wont load 16Kb SNA snapshots (these are files <16Kb in size, '3D Death Chase' and 'Jetpac' being
+  notable examples.). Convert them to regular 48K snapshots in another emulator to load them.
 
 - At the moment it doesn't store a set of button mappings per game, just a single set that
-is restored at power-on. per-game button mapping memory possible though.
+is restored at power-on. Per-game button mapping memory possible though.
 
-- It will try to load TAP and TXZ files, but wont work with them. Don't use these file type, OK?
+- It will try to load TAP and TXZ files, but wont work with them. Don't use these file types, OK?
 
 # Technical Information
 
