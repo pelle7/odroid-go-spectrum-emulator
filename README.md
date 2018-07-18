@@ -32,7 +32,7 @@ press the 'start' button to flash the spectrum firmware.
 To go back to the existing emulators, copy firmware.saf back to firmware.bin
 and folllow 3) again.
 
---
+---
 #Tips
 
 - in the on-screen keyboard, the Select and Start buttons are mapped to Caps Shift
