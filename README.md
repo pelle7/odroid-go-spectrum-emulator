@@ -6,7 +6,7 @@ Features
 - load/save SNA and Z80 snapshot files
 - re-map buttons to spectrum keys, standard options available e.g. cursor keys
 - on-screen keyboard to simulate hunt-and-peck typing.
-= fast startup (about 1 second), resume from last saved position.
+- fast startup (about 1 second), resume from last saved position.
 
 #Installing
 
