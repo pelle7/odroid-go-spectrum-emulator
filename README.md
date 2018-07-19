@@ -20,7 +20,7 @@ It will also probably erase any previously saved game states.
 
 If there isn't already a firmware.bin file on your SD card you need to update the bootloader on your odroid - see 
 
-https://github.com/OtherCrashOverride/go-play/releases/tag/20180708
+https://forum.odroid.com/viewtopic.php?f=159&t=31348
 
 and
 
