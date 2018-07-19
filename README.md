@@ -12,6 +12,10 @@ Features
 
 This assumess you have already built the ODROID-GO and set up an SD card to run the default emulators.
 
+Currently, the installation will replace the existing emulators rather than fit in
+along side them, hopefully this will be resolved in the future.
+It will also probably erase any previously saved game states.
+
 1) Rename the existing firmware.bin file on your SD card to something like firmware.saf, then download the firmware.bin file here in its place. 
 
 If there isn't already a firmware.bin file on your SD card you need to update the bootloader on your odroid - see 
