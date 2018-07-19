@@ -32,7 +32,7 @@ press the 'start' button to flash the spectrum firmware.
 To go back to the existing emulators, copy firmware.saf back to firmware.bin
 and folllow 3) again.
 
----
+--
 #Tips
 
 - in the on-screen keyboard, the Select and Start buttons are mapped to Caps Shift
@@ -43,25 +43,17 @@ and Symbol Shift, if upper-case or punctuation characters required. 'B' exits.
 ---
 #Building from source.
 
-You need the esp-idf build environemnt with a couple of modifications on top of it.
+You need the esp-idf build environment with a couple of modifications on top of it.
 
-1) SD card support - if you have not already downloaded the esp-idf fraamework, get the patched version by Crashoverride instead: 
+1) SD card support - if you have not already downloaded the esp-idf framework, get the patched version by Crashoverride instead: 
 
 https://github.com/OtherCrashOverride/esp-idf/tree/release/v3.1-odroid
 
 or replace esp-idf/components/driver/sdspi_host.c with the one included here.
 
-2) long filename support - edit the file:
-esp-idf/components/fatfs/src/ffconf.h
-and add a couple of lines:
+(reference:  https://forum.odroid.com/viewtopic.php?f=160&t=31383)
 
-  #define CONFIG_FATFS_LFN_HEAP 1
-
-  #define FF_MAX_LFN 255
-
-(reference for 1) and 2):  https://forum.odroid.com/viewtopic.php?f=160&t=31383)
-
-3) prevent SPI crashes - edit the file:
+2) prevent SPI crashes - edit the file:
 esp-idf/components/driver/spi_master.c
 and either comment out or completely remove  the line:
 
