@@ -12,9 +12,8 @@ Features
 
 This assumess you have already built the ODROID-GO and set up an SD card to run the default emulators.
 
-Currently, the installation will replace the existing emulators rather than fit in
-along side them, hopefully this will be resolved in the future.
-It will also probably erase any previously saved game states.
+Note: the installation will replace the existing menu screeen with a similar, but
+open-source alternative, to allow the Spectrum emulator to fit in with the existing ones.
 
 1) Rename the existing firmware.bin file on your SD card to something like firmware.saf, then download the firmware.bin file here in its place. 
 
@@ -27,6 +26,8 @@ and
 https://forum.odroid.com/viewtopic.php?f=158&t=31513
 
 2) While you have the SD card out of the ODROID, make a new directory /roms/spectrum on the card and copy your snapshot files (SNA or Z80) in here.  Using subdirectories is fine.
+Also, copy the empty file 'go.spectrum' into this directory. (This allows the
+emulator to launch from the menu)
 
 3) Switch off ORDOID-GO, hold down 'B' button and switch back on, keep  B button
 pressed for 5 seconds. If nothing happens you need to update the bootloader - see 1).

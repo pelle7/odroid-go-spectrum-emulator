@@ -438,17 +438,19 @@ int menu()
   printx2(4,12,"Save Snapshot");
   printx2(4,15,"Setup Buttons");
   printx2(4,18,"Back To Emulator");
+  printx2(4,21,"Exit Emulator");
+  
   posn=6;
   printx2(0,posn,">");
   while(1) {
     odroid_input_gamepad_read(&joystick);
     if (joystick.values[ODROID_INPUT_DOWN]) {
-      printx2(0,posn," "); posn+=3; if (posn>18) posn=6;
+      printx2(0,posn," "); posn+=3; if (posn>21) posn=6;
       printx2(0,posn,">");
       debounce(ODROID_INPUT_DOWN);     
     }
     if (joystick.values[ODROID_INPUT_UP]) {
-      printx2(0,posn," "); posn-=3; if (posn<6) posn=18;
+      printx2(0,posn," "); posn-=3; if (posn<6) posn=21;
       printx2(0,posn,">");
       debounce(ODROID_INPUT_UP);   
     }
@@ -465,6 +467,10 @@ int menu()
 	     b_up,b_down,b_left,b_right,b_a,b_b,b_select,b_start);	    
 	    fclose(fp);
 	  }
+      }
+      if (posn==21) {
+        odroid_system_application_set(0); // set menu slot 
+	esp_restart(); // reboot!
       }
       
       odroid_audio_volume_set(level);  // restore sound...
