@@ -420,6 +420,7 @@ int menu()
   int posn;
   odroid_volume_level level;
   FILE *fp;
+  char s[80];
 
   level=odroid_audio_volume_get();
   odroid_audio_volume_set(0); // turn off sound when in menu...
@@ -438,19 +439,21 @@ int menu()
   printx2(4,12,"Save Snapshot");
   printx2(4,15,"Setup Buttons");
   printx2(4,18,"Back To Emulator");
-  printx2(4,21,"Exit Emulator");
   
+  odroid_input_battery_level_read(&battery_state);
+  sprintf(s,"Battery: %i%%",battery_state.percentage);
+  printx2(0,28,s);
   posn=6;
   printx2(0,posn,">");
   while(1) {
     odroid_input_gamepad_read(&joystick);
     if (joystick.values[ODROID_INPUT_DOWN]) {
-      printx2(0,posn," "); posn+=3; if (posn>21) posn=6;
+      printx2(0,posn," "); posn+=3; if (posn>18) posn=6;
       printx2(0,posn,">");
       debounce(ODROID_INPUT_DOWN);     
     }
     if (joystick.values[ODROID_INPUT_UP]) {
-      printx2(0,posn," "); posn-=3; if (posn<6) posn=21;
+      printx2(0,posn," "); posn-=3; if (posn<6) posn=18;
       printx2(0,posn,">");
       debounce(ODROID_INPUT_UP);   
     }
@@ -558,6 +561,8 @@ void app_main(void)
     // Display
     ili9341_prepare();
     ili9341_init();
+    
+    odroid_input_battery_level_init();
     
     odroid_sdcard_open("/sd");   // map SD card.
     // see if there is a 'resume.txt' file, use it if so...

@@ -12,30 +12,26 @@ Features
 
 This assumess you have already built the ODROID-GO and set up an SD card to run the default emulators.
 
-Note: the installation will replace the existing menu screeen with a similar, but
-open-source alternative, to allow the Spectrum emulator to fit in with the existing ones.
+Note that installing this emulator _replaces_ the existing ones, but they can be restored later.
 
-1) Rename the existing firmware.bin file on your SD card to something like firmware.saf, then download the firmware.bin file here in its place. 
+1) Download the file ZX_Spectrum.fw from here and put it in the ordoid/firmware directory of your SD card. You probably 
+also should make sure there is a file Go-Play.fw here so you can go back to the existing emulators.
 
-If there isn't already a firmware.bin file on your SD card you need to update the bootloader on your odroid - see 
-
-https://forum.odroid.com/viewtopic.php?f=159&t=31348
-
-and
-
-https://forum.odroid.com/viewtopic.php?f=158&t=31513
+Go-Play.fw can be found at: https://github.com/OtherCrashOverride/go-play/releases/
 
 2) While you have the SD card out of the ODROID, make a new directory /roms/spectrum on the card and copy your snapshot files (SNA or Z80) in here.  Using subdirectories is fine.
 Also, copy the empty file 'go.spectrum' into this directory. (This allows the
 emulator to launch from the menu)
 
 3) Switch off ORDOID-GO, hold down 'B' button and switch back on, keep  B button
-pressed for 5 seconds. If nothing happens you need to update the bootloader - see 1).
+pressed for 5 seconds. If nothing happens you need to update the bootloader - see
 
-press the 'start' button to flash the spectrum firmware.
+https://forum.odroid.com/viewtopic.php?f=158&t=31513
 
-To go back to the existing emulators, copy firmware.saf back to firmware.bin
-and folllow 3) again.
+
+Go to the 'ZX Spectrum' option and press the 'start' button to flash the firmware.
+
+To go back to the existing emulators, follow step 3) again, but choose Go-Play instead.
 
 --
 #Tips
