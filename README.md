@@ -20,8 +20,6 @@ also should make sure there is a file Go-Play.fw here so you can go back to the 
 Go-Play.fw can be found at: https://github.com/OtherCrashOverride/go-play/releases/
 
 2) While you have the SD card out of the ODROID, make a new directory /roms/spectrum on the card and copy your snapshot files (SNA or Z80) in here.  Using subdirectories is fine.
-Also, copy the empty file 'go.spectrum' into this directory. (This allows the
-emulator to launch from the menu)
 
 3) Switch off ORDOID-GO, hold down 'B' button and switch back on, keep  B button
 pressed for 5 seconds. If nothing happens you need to update the bootloader - see
