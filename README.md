@@ -31,6 +31,8 @@ Go to the 'ZX Spectrum' option and press the 'start' button to flash the firmwar
 
 To go back to the existing emulators, follow step 3) again, but choose Go-Play instead.
 
+(NOTE - if you get a "BOOT SET ERROR" doing this, do the Go-Play install a second time)
+
 --
 #Tips
 
