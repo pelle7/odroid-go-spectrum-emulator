@@ -177,23 +177,46 @@ int choose_file()
            !redraw)
       {
         odroid_input_gamepad_read(&joystick);
-	if (joystick.values[ODROID_INPUT_UP] && y>0) {
-	  print(0,(y%20)+5," "); y--;
-	  print (0,(y%20)+5,">");
+	if (joystick.values[ODROID_INPUT_UP]) {
 	  debounce(ODROID_INPUT_UP);
-	}
-	if (joystick.values[ODROID_INPUT_DOWN] && y<count-1) {
-	  print(0,(y%20)+5," "); y++;
+	  print(0,(y%20)+5," ");
+          if (y>0) {
+	    y--;
+	    if (y%20==19) redraw=1;
+	  } else {
+	    y=count-1;
+	    redraw=1;
+	  }
 	  print (0,(y%20)+5,">");
+	}
+	if (joystick.values[ODROID_INPUT_DOWN]) {
 	  debounce(ODROID_INPUT_DOWN);
-	  if (y%20==0) redraw=1;
+	  print(0,(y%20)+5," ");
+	  if (y<count-1) {
+	    y++;
+	    if (y%20==0) redraw=1;
+	  } else {
+	    y=0;
+	    redraw=1;
+	  }
+	  print (0,(y%20)+5,">");
 	}
-	if (joystick.values[ODROID_INPUT_LEFT] && y>19) {
-	  debounce(ODROID_INPUT_LEFT); y-=20; redraw=1;
+	if (joystick.values[ODROID_INPUT_LEFT]) {
+	  debounce(ODROID_INPUT_LEFT);
+	  print(0,(y%20)+5," ");
+	  y-=20;
+	  if (y<0) y=0;
+	  print(0,(y%20)+5,">");
+	  redraw=1;
 	}
-	if (joystick.values[ODROID_INPUT_RIGHT] && y<count-21) {	
-	  debounce(ODROID_INPUT_RIGHT); y+=20; redraw=1;
-	}			
+	if (joystick.values[ODROID_INPUT_RIGHT]) {
+	  debounce(ODROID_INPUT_RIGHT);
+	  print(0,(y%20)+5," ");
+	  y+=20;
+	  if (y>count-1) y=count-1;
+	  print(0,(y%20)+5,">");
+	  redraw=1;
+	}
         if (joystick.values[ODROID_INPUT_MENU]) {  // just exit menu...
           debounce(ODROID_INPUT_MENU);
            return(0);
