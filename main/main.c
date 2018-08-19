@@ -463,7 +463,8 @@ int menu()
   printx2(4,9,"Load Snapshot");
   printx2(4,12,"Save Snapshot");
   printx2(4,15,"Setup Buttons");
-  printx2(4,18,"Back To Emulator");
+  printx2(4,18,"Toggle Turbo Mode");
+  printx2(4,21,"Back To Emulator");
   
   odroid_input_battery_level_read(&battery_state);
   sprintf(s,"Battery: %i%%",battery_state.percentage);
@@ -473,12 +474,12 @@ int menu()
   while(1) {
     odroid_input_gamepad_read(&joystick);
     if (joystick.values[ODROID_INPUT_DOWN]) {
-      printx2(0,posn," "); posn+=3; if (posn>18) posn=6;
+      printx2(0,posn," "); posn+=3; if (posn>21) posn=6;
       printx2(0,posn,">");
       debounce(ODROID_INPUT_DOWN);     
     }
     if (joystick.values[ODROID_INPUT_UP]) {
-      printx2(0,posn," "); posn-=3; if (posn<6) posn=18;
+      printx2(0,posn," "); posn-=3; if (posn<6) posn=21;
       printx2(0,posn,">");
       debounce(ODROID_INPUT_UP);   
     }
@@ -496,10 +497,12 @@ int menu()
 	    fclose(fp);
 	  }
       }
-      if (posn==21) {
-        odroid_system_application_set(0); // set menu slot 
-	esp_restart(); // reboot!
-      }
+      if (posn==18) sp_nosync = !sp_nosync;
+
+//      if (posn==21) {
+//        odroid_system_application_set(0); // set menu slot 
+//	esp_restart(); // reboot!
+//      }
       
       odroid_audio_volume_set(level);  // restore sound...
       return(0);
