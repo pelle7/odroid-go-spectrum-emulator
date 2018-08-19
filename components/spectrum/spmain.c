@@ -84,6 +84,11 @@ extern const unsigned long loadim_size;
 
 extern void snsh_sna_load(SNFILE *fp); // bjs
 
+//Use second core for video
+QueueHandle_t vidQueue;
+TaskHandle_t videoTaskHandle;
+volatile bool videoTaskIsRunning = false;
+
 #define SHOW_OFFS 1
 
 static void update(void)
@@ -91,6 +96,32 @@ static void update(void)
   update_screen();
   sp_border_update >>= 1;
   sp_imag_vert = sp_imag_horiz = 0;
+}
+
+//code from OtherCrashOverride Go-Play
+void videoTask(void)
+{
+
+  esp_err_t ret;
+  videoTaskIsRunning = true;
+
+  uint16_t* param;
+  while(1)
+  {
+    xQueuePeek(vidQueue, &param, portMAX_DELAY);
+
+    if (param == 1)
+      break;
+
+    translate_screen();
+
+    xQueueReceive(vidQueue, &param, portMAX_DELAY);
+  }
+
+  videoTaskIsRunning = false;
+  vTaskDelete(NULL);
+
+  while (1) {}
 }
 
 static void run_singlemode(void)
@@ -108,8 +139,14 @@ static void run_singlemode(void)
       while(sp_paused) {
 	spkb_process_events(1);
 	spti_sleep(SKIPTIME);
-	translate_screen();
+
+        //dk Use second core for video
+        uint16_t* param = 1;
+        xQueueSend(vidQueue,&param,portMAX_DELAY);
+        while(videoTaskIsRunning) {}
+
 	update();
+
       }
       spti_reset();
     }
@@ -234,6 +271,8 @@ static void print_copyright(void)
   put_msg("Press Ctrl-h for help");
 }
 
+//dk
+
 void start_spectemu()
 {
   spti_init(); 
@@ -243,6 +282,10 @@ void start_spectemu()
   
   print_copyright(); // bjs irrelevant dumping to message buffer
   init_load();
+
+  //dk use second core for video
+  vidQueue = xQueueCreate(1, sizeof(uint16_t*));
+  xTaskCreatePinnedToCore(&videoTask, "videoTask", 1024*4, NULL, 5, &videoTaskHandle, 1);//these numbers are probably wrong
 
   run_singlemode();
 }
