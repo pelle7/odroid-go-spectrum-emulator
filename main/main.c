@@ -273,33 +273,35 @@ void save()
 //----------------------------------------------------------------
 void draw_keyboard()
 {
-   print(0,24,"      1  2  3  4  5  6  7  8  9  0   ");
-   print(0,25,"      q  w  e  r  t  y  u  i  o  p   ");
-   print(0,26,"      a  s  d  f  g  h  j  k  l ent  ");
-   print(0,27,"     cap z  x  c  v  b  n  m sym _   ");
-   print(0,28,"                                     ");
+   print(0,24,"                                     ");
+   print(0,25,"      1  2  3  4  5  6  7  8  9  0   ");
+   print(0,26,"      q  w  e  r  t  y  u  i  o  p   ");
+   print(0,27,"      a  s  d  f  g  h  j  k  l ent  ");
+   print(0,28,"     cap z  x  c  v  b  n  m sym _   ");
+   print(0,29,"                                     ");
+  
    kb_set(); // add cursor
 }
 //---------------------------------------------------------------
 void kb_blank()
 {
   if (kbpos==29 || kbpos==30 || kbpos==38) {
-    print(4+(kbpos%10)*3,24+(kbpos/10)," ");
-    print(8+(kbpos%10)*3,24+(kbpos/10)," ");
+    print(4+(kbpos%10)*3,25+(kbpos/10)," ");
+    print(8+(kbpos%10)*3,25+(kbpos/10)," ");
   } else {
-    print(5+(kbpos%10)*3,24+(kbpos/10)," ");
-    print(7+(kbpos%10)*3,24+(kbpos/10)," ");
+    print(5+(kbpos%10)*3,25+(kbpos/10)," ");
+    print(7+(kbpos%10)*3,25+(kbpos/10)," ");
   } 
 }
 
 void kb_set() 
 {
    if (kbpos==29 || kbpos==30 || kbpos==38) {
-    print(4+(kbpos%10)*3,24+(kbpos/10),">");
-    print(8+(kbpos%10)*3,24+(kbpos/10),"<");
+    print(4+(kbpos%10)*3,25+(kbpos/10),">");
+    print(8+(kbpos%10)*3,25+(kbpos/10),"<");
   } else {
-    print(5+(kbpos%10)*3,24+(kbpos/10),">");
-    print(7+(kbpos%10)*3,24+(kbpos/10),"<");
+    print(5+(kbpos%10)*3,25+(kbpos/10),">");
+    print(7+(kbpos%10)*3,25+(kbpos/10),"<");
   } 
 }
 
