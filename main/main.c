@@ -22,37 +22,18 @@
 #include "../components/odroid/odroid_display.h"
 #include "../components/odroid/odroid_audio.h"
 #include "../components/odroid/odroid_system.h"
+#include "../components/odroid/odroid_sdcard.h"
+#include "../components/odroid/odroid_ui.h"
 
-#include "../components/spectrum/compr.c"
-#include "../components/spectrum/interf.c"
-#include "../components/spectrum/keynames.c"
-#include "../components/spectrum/loadim.c"
-#include "../components/spectrum/misc.c"
-#include "../components/spectrum/rom_imag.c"
-#include "../components/spectrum/snapshot.c"
-#include "../components/spectrum/spconf.c"
-#include "../components/spectrum/spect.c"
-#include "../components/spectrum/spectkey.c"
-#include "../components/spectrum/spkey.c"
-#include "../components/spectrum/spmain.c"
-#include "../components/spectrum/spperif.c"
-#include "../components/spectrum/spscr.c"
-#include "../components/spectrum/spsound.c"
-#include "../components/spectrum/sptape.c"
-#include "../components/spectrum/sptiming.c"
-#include "../components/spectrum/stubs.c"
-#include "../components/spectrum/tapefile.c"
-#include "../components/spectrum/vgakey.c"
-#include "../components/spectrum/vgascr.c"
-#include "../components/spectrum/z80.c"
-#include "../components/spectrum/z80_op1.c"
-#include "../components/spectrum/z80_op2.c"
-#include "../components/spectrum/z80_op3.c"
-#include "../components/spectrum/z80_op4.c"
-#include "../components/spectrum/z80_op5.c"
-#include "../components/spectrum/z80_op6.c"
-#include "../components/spectrum/z80optab.c"
-#include "../components/spectrum/z80_step.c"
+#include "../components/spectrum/spmain.h"
+#include "../components/spectrum/vgascr.h"
+#include "../components/spectrum/spperif.h"
+#include "../components/spectrum/snapshot.h"
+#include "../components/spectrum/spsound.h"
+
+extern int sp_nosync;
+extern int kbpos;
+extern unsigned char rom_imag[];
 
 #include <string.h>
 #include <dirent.h>
@@ -81,10 +62,11 @@ int BatteryPercent = 100;
 uint16_t* menuFramebuffer = 0;
 
 unsigned short *buffer;  // screen buffer.
-char path[256]="/sd/roms/spectrum",file[256]="/sd/roms/spectrum/basic.sna";
+char path[256]="/sd/roms/spectrum";
+char file[256]="/sd/roms/spectrum/basic.sna";
 
 //----------------------------------------------------------------
-void print(short x, short y, char *s)
+void print(short x, short y, const char *s)
 {
     int rompos,i,n,k,a,len,idx;
     char c;
@@ -108,7 +90,7 @@ void print(short x, short y, char *s)
 }
 
 //----------------------------------------------------------------
-void printx2(short x, short y, char *s)
+void printx2(short x, short y, const char *s)
 {
     int rompos,i,n,k,a,len,idx;
     char c;
@@ -270,6 +252,17 @@ void save()
   printx2(12,22,"SAVED."); sleep(1);
 }
 
+void kb_set() 
+{
+   if (kbpos==29 || kbpos==30 || kbpos==38) {
+    print(4+(kbpos%10)*3,25+(kbpos/10),">");
+    print(8+(kbpos%10)*3,25+(kbpos/10),"<");
+  } else {
+    print(5+(kbpos%10)*3,25+(kbpos/10),">");
+    print(7+(kbpos%10)*3,25+(kbpos/10),"<");
+  } 
+}
+
 //----------------------------------------------------------------
 void draw_keyboard()
 {
@@ -291,17 +284,6 @@ void kb_blank()
   } else {
     print(5+(kbpos%10)*3,25+(kbpos/10)," ");
     print(7+(kbpos%10)*3,25+(kbpos/10)," ");
-  } 
-}
-
-void kb_set() 
-{
-   if (kbpos==29 || kbpos==30 || kbpos==38) {
-    print(4+(kbpos%10)*3,25+(kbpos/10),">");
-    print(8+(kbpos%10)*3,25+(kbpos/10),"<");
-  } else {
-    print(5+(kbpos%10)*3,25+(kbpos/10),">");
-    print(7+(kbpos%10)*3,25+(kbpos/10),"<");
   } 
 }
 
@@ -451,20 +433,24 @@ int menu()
   odroid_audio_volume_set(0); // turn off sound when in menu...
   process_sound();
   
-  lastborder=100; // force border re-draw after menu exit....
+  sp_lastborder=100; // force border re-draw after menu exit....
   
   //debounce inital menu button press first....
   odroid_input_gamepad_read(&joystick);
   debounce(ODROID_INPUT_MENU);
   keyboard=0; // make sure virtual keyboard swtiched off now
+  printf("STEP #01\n");
   ili9341_clear(0); // clear screen
+  printf("STEP #02\n");
   printx2(0,0,"ZX Spectrum Emulator");
+  printf("STEP #03\n");
   printx2(4,6,"Keyboard");
   printx2(4,9,"Load Snapshot");
   printx2(4,12,"Save Snapshot");
   printx2(4,15,"Setup Buttons");
   printx2(4,18,"Toggle Turbo Mode");
   printx2(4,21,"Back To Emulator");
+  printf("STEP #08\n");
   
   odroid_input_battery_level_read(&battery_state);
   sprintf(s,"Battery: %i%%",battery_state.percentage);
@@ -505,19 +491,24 @@ int menu()
 //      }
       
       odroid_audio_volume_set(level);  // restore sound...
+      ili9341_clear(0);
       return(0);
     }
     if (joystick.values[ODROID_INPUT_MENU]) {
      debounce(ODROID_INPUT_MENU);
      odroid_audio_volume_set(level); // restore sound...
+     ili9341_clear(0);
      return(0);
     }
   }
 }
 
+extern bool forceConsoleReset;
 //----------------------------------------------------------------
 void app_main(void)
 {
+    printf("spectrum (%s-%s).\n", COMPILEDATE, GITREV);
+
     FILE *fp;
     
     printf("odroid start.\n");
@@ -526,65 +517,15 @@ void app_main(void)
     odroid_system_init();
     odroid_input_gamepad_init();
 
-    // Boot state overrides
-    bool forceConsoleReset = false;
-
-    switch (esp_sleep_get_wakeup_cause())
-    {
-        case ESP_SLEEP_WAKEUP_EXT0:
-        {
-            printf("app_main: ESP_SLEEP_WAKEUP_EXT0 deep sleep wake\n");
-            break;
-        }
-
-        case ESP_SLEEP_WAKEUP_EXT1:
-        case ESP_SLEEP_WAKEUP_TIMER:
-        case ESP_SLEEP_WAKEUP_TOUCHPAD:
-        case ESP_SLEEP_WAKEUP_ULP:
-        case ESP_SLEEP_WAKEUP_UNDEFINED:
-        {
-            printf("app_main: Non deep sleep startup\n");
-
-            odroid_gamepad_state bootState = odroid_input_read_raw();
-
-            if (bootState.values[ODROID_INPUT_MENU])
-            {
-                // Force return to factory app to recover from
-                // ROM loading crashes
-
-                // Set factory app
-                const esp_partition_t* partition = esp_partition_find_first(ESP_PARTITION_TYPE_APP, ESP_PARTITION_SUBTYPE_APP_FACTORY, NULL);
-                if (partition == NULL)
-                {
-                    abort();
-                }
-
-                esp_err_t err = esp_ota_set_boot_partition(partition);
-                if (err != ESP_OK)
-                {
-                    abort();
-                }
-
-                // Reset
-                esp_restart();
-            }
-
-            if (bootState.values[ODROID_INPUT_START])
-            {
-                // Reset emulator if button held at startup to
-                // override save state
-                forceConsoleReset = true;
-            }
-
-            break;
-        }
-        default:
-            printf("app_main: Not a deep sleep reset\n");
-            break;
-    }  
+    check_boot_cause();
    
     // allocate a screen buffer...
     buffer=(unsigned short *)malloc(16384);
+    if (!buffer)
+    {
+        printf("malloc failed\n");
+        abort();
+    }
    
     // Display
     ili9341_prepare();
@@ -605,10 +546,12 @@ void app_main(void)
     }
 
     // Audio hardware
-    odroid_audio_init(AUDIO_SAMPLE_RATE);
+    odroid_audio_init(odroid_settings_AudioSink_get(), AUDIO_SAMPLE_RATE);
   
     // Start Spectrum emulation here.......
     sp_init();
     load_snapshot_file_type(file,-1);
+    odroid_ui_debug_enter_loop();
+    odroid_audio_volume_set(ODROID_VOLUME_LEVEL0);
     start_spectemu();
 }

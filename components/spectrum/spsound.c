@@ -28,6 +28,10 @@
 #include "interf.h"
 
 #include <stdio.h>
+#include "freertos/FreeRTOS.h"
+#include "esp_system.h"
+#include "esp_event.h"
+#include "../odroid/odroid_audio.h"
 
 #define VOLREDUCE 2
 
@@ -166,7 +170,7 @@ static void close_snd(int normal)
 #define HIGH_PASS(hp, sv) (((hp) * 15 + (sv)) >> 4)
 #define TAPESOUND(tsp)    ((*tsp) >> 4)
 
-static void process_sound(void)
+void process_sound(void)
 {
   static int soundhp;
   int i;

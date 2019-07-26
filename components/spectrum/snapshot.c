@@ -43,15 +43,6 @@
 static char quick_snap_file[MAXFILENAME];
 static int  qsnap_created = 0;
 
-typedef struct {
-  int isfile;
-  FILE *fp;
-
-  unsigned len;
-  byte *at;
-} SNFILE;
-
-
 #define sngetc(snfp) ((snfp)->isfile ? getc((snfp)->fp) : snmgetc(snfp))
 
 static int snmgetc(SNFILE *snfp)

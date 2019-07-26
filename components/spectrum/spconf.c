@@ -33,6 +33,8 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
+#include "freertos/FreeRTOS.h"
+#include "esp_system.h"
 
 extern const char *spcf_keynames_ascii[];
 extern const char *spcf_keynames_misc[];
@@ -350,12 +352,12 @@ static void process_option(int ix, int pre)
   switch(ix) {
   case OPT_HELP:
     usage();
-    exit(0);
+    abort();
     break;
     
   case OPT_VERSION:
     fprintf(stderr, "%s\n", SPECTEMU_VERSION);
-    exit(0);
+    abort();
     break;
   }
 }
@@ -494,7 +496,7 @@ void spcf_set_val(int ix, const char *val, const char *name, int ctr,
       fprintf(stderr, 
 	      "%s:%i: Illegal value '%s', expected integer\n", 
 	      name, ctr, val);
-      if(fatal) exit(1);
+      if(fatal) abort();
     }
     break;
     
@@ -507,7 +509,7 @@ void spcf_set_val(int ix, const char *val, const char *name, int ctr,
 	      "%s:%i: Illegal value '%s', expected "
 	      "'true' or 'false'\n",
 	      name, ctr, val);
-      if(fatal) exit(1);
+      if(fatal) abort();
     }
     if(res) *ip = (int) lv;
     break;
@@ -528,7 +530,7 @@ void spcf_set_val(int ix, const char *val, const char *name, int ctr,
 	if(es[++i] != NULL) fprintf(stderr, " or ");
       }
       fprintf(stderr, "\n");
-      if(fatal) exit(1);
+      if(fatal) abort();
     }
     break;
     
@@ -552,7 +554,7 @@ void spcf_set_color(int ix, const char *val, const char *name, int ctr,
   if(res != 3 || r < 0 || r > 63 || g < 0 || g > 63 || b < 0 || b > 63) {
     if(!quiet) {
       fprintf(stderr, "%s:%i: Illegal rgb values: '%s'\n", name, ctr, val);
-      if(fatal) exit(1);
+      if(fatal) abort();
     }
   }
   else {
@@ -577,7 +579,7 @@ void spcf_set_key(int ix, const char *val, const char *name, int ctr,
   if(!spkey_new_custom(ix)) {
     if(!quiet) {
       fprintf(stderr, "%s:%i: Custom key table full\n", name, ctr);
-      if(fatal) exit(1);
+      if(fatal) abort();
     }
     return;
   }
@@ -592,7 +594,7 @@ void spcf_set_key(int ix, const char *val, const char *name, int ctr,
       if(!quiet) {
 	fprintf(stderr, "%s:%i: Illegal key name: '%s'\n", name, ctr, 
 		spkeyname);
-	if(fatal) exit(1);
+	if(fatal) abort();
       }
     }
     val += len;
@@ -624,7 +626,7 @@ void spcf_read_command_line(int argc, char *argv[])
     if(argv[a][0] == '-') {
       if(file_type >= 0) {
 	fprintf(stderr, "File name expected after option '%s'\n", argv[a-1]);
-	exit(1);
+	abort();
       }
       bval = 1;
       if(strncmp(argv[a]+1, "no-", 3) == 0) {
@@ -641,7 +643,7 @@ void spcf_read_command_line(int argc, char *argv[])
 	  else {
 	    fprintf(stderr, "Option '%s', argument expected\n",
 		    argv[a]);
-	    exit(1);
+	    abort();
 	  }
 	}
       }
@@ -656,7 +658,7 @@ void spcf_read_command_line(int argc, char *argv[])
 	    if(a + 1 == argc) {
 	      fprintf(stderr, 
 		      "File name expected after option '%s'\n", argv[a]);
-	      exit(1);
+	      abort();
 	    }
 
 	    file_type = extensions[ix].type;
@@ -665,7 +667,7 @@ void spcf_read_command_line(int argc, char *argv[])
 	  else {
 	    fprintf(stderr, "Option '%s' not recognized\n", argv[a]);
 	    fprintf(stderr, "Use '-help' to see valid options\n");
-	    exit(1);
+	    abort();
 	  }
 	}
       }
@@ -678,7 +680,7 @@ void spcf_read_command_line(int argc, char *argv[])
       
       if(!spcf_find_file_type(filenamebuf, &file_type, &file_subtype)) {
 	fprintf(stderr, "Can't determine file type of '%s'\n", filenamebuf);
-	exit(1);
+	abort();
       }
       
       if(file_type == FT_SNAPSHOT) {

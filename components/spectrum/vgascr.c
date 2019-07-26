@@ -28,6 +28,10 @@
 #include "misc.h"
 #include "interf.h"
 
+extern void vga_drawscanline();
+extern void vga_setmode();
+extern void vga_setpalvec();
+
 #define TV_WIDTH         320
 #define TV_HEIGHT_SMALL  200
 #define TV_HEIGHT_LARGE  240

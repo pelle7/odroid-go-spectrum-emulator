@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include "../odroid/odroid_display.h"
 
 int color_type = 0;
 

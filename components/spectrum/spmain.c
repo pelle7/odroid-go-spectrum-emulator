@@ -42,7 +42,10 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#include "freertos/FreeRTOS.h"
+#include "esp_event.h"
 #include "../odroid/odroid_sdcard.h"
+#include "../odroid/odroid_display.h"
 
 int endofsingle;
 
@@ -112,8 +115,9 @@ void videoTask(void)
 
     if (param == 1)
       break;
-
+    odroid_display_lock();
     translate_screen();
+    odroid_display_unlock();
 
     xQueueReceive(vidQueue, &param, portMAX_DELAY);
   }
@@ -126,6 +130,10 @@ void videoTask(void)
 
 static void run_singlemode(void)
 {
+    uint startTime;
+    uint stopTime;
+    uint totalElapsedTime = 0;
+    uint actualFrameCount = 0;
   int t = 0;
   int evenframe, halfsec, updateframe;
 
@@ -134,6 +142,7 @@ static void run_singlemode(void)
 
   spti_reset();
   while(!endofsingle) {
+    startTime = xthal_get_ccount();
     if(sp_paused) {
       autoclose_sound();
       while(sp_paused) {
@@ -186,6 +195,28 @@ static void run_singlemode(void)
       play_sound(evenframe);
     }
     else if(updateframe) update();
+    
+    stopTime = xthal_get_ccount();
+    
+        uint elapsedTime;
+        if (stopTime > startTime)
+          elapsedTime = (stopTime - startTime);
+        else
+          elapsedTime = ((uint64_t)stopTime + (uint64_t)0xffffffff) - (startTime);
+
+        totalElapsedTime += elapsedTime;
+        ++actualFrameCount;
+
+        if (actualFrameCount == 60)
+        {
+          float seconds = totalElapsedTime / (CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ * 1000000.0f); // 240000000.0f; // (240Mhz)
+          float fps = actualFrameCount / seconds;
+
+          printf("FPS:%f\n", fps);
+
+          actualFrameCount = 0;
+          totalElapsedTime = 0;
+        }
   }
 }
 

@@ -22,12 +22,17 @@
 #include "spkey.h"
 #include "spkey_p.h"
 #include "spperif.h"
-
 #include "vgascr.h"
-
 #include "akey.h"
 
 #include <stdlib.h>
+#include "../odroid/odroid_input.h"
+#include "../odroid/odroid_audio.h"
+
+extern void keyboard_init();
+extern void keyboard_close();
+extern void keyboard_translatekeys();
+extern int keyboard;
 
 extern int menu();
 extern void kb_blank();
@@ -79,7 +84,6 @@ void keyboard_update()
   {
     pressed=1;
     odroid_audio_volume_change();
-    printf("main: Volume=%d\n", odroid_audio_volume_get());
   }
 
 //---------------------------------------   
@@ -119,7 +123,7 @@ void keyboard_update()
     if (joystick.values[ODROID_INPUT_START]) kbstate[map[38]]=1; // sym-shift
     
     if (joystick.values[ODROID_INPUT_B] ||
-        joystick.values[ODROID_INPUT_MENU]) {keyboard=0; lastborder=100;}
+        joystick.values[ODROID_INPUT_MENU]) {keyboard=0; sp_lastborder=100;}
     
         
   }

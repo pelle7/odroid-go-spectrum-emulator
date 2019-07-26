@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+extern unsigned int sleep(unsigned int seconds);
 
 Z80 PRNM(proc);
 

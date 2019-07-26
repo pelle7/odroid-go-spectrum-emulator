@@ -24,6 +24,17 @@
 #define SN_SNA 0
 #define SN_Z80 1
 
+#include <stdio.h>
+#include "z80_type.h"
+
+typedef struct {
+  int isfile;
+  FILE *fp;
+
+  unsigned len;
+  byte *at;
+} SNFILE;
+
 extern void save_snapshot_file(char *snsh_name);
 extern void load_snapshot_file_type(char *snsh_name, int type);
 extern void snsh_z80_load_intern(unsigned char *p, unsigned len);
