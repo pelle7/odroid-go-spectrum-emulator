@@ -46,6 +46,8 @@
 #include "esp_event.h"
 #include "../odroid/odroid_sdcard.h"
 #include "../odroid/odroid_display.h"
+#include "../odroid/odroid_audio.h"
+#include "../odroid/odroid_ui.h"
 
 int endofsingle;
 
@@ -101,6 +103,8 @@ static void update(void)
   sp_imag_vert = sp_imag_horiz = 0;
 }
 
+#define TASK_BREAK (uint16_t*)1
+
 //code from OtherCrashOverride Go-Play
 void videoTask(void)
 {
@@ -113,7 +117,7 @@ void videoTask(void)
   {
     xQueuePeek(vidQueue, &param, portMAX_DELAY);
 
-    if (param == 1)
+    if (param == TASK_BREAK)
       break;
     odroid_display_lock();
     translate_screen();
@@ -126,6 +130,24 @@ void videoTask(void)
   vTaskDelete(NULL);
 
   while (1) {}
+}
+
+void DoMenuHome(bool save)
+{
+    esp_err_t err;
+    uint16_t* param = TASK_BREAK;
+
+    // Clear audio to prevent studdering
+    printf("PowerDown: stopping audio.\n");
+    odroid_audio_terminate();
+
+    // Stop tasks
+    printf("PowerDown: stopping tasks.\n");
+
+    xQueueSend(vidQueue, &param, portMAX_DELAY);
+    while (videoTaskIsRunning) {}
+
+    DoReboot(save);
 }
 
 static void run_singlemode(void)

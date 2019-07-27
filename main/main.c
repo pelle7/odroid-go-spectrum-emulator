@@ -30,7 +30,9 @@
 #include "../components/spectrum/spperif.h"
 #include "../components/spectrum/snapshot.h"
 #include "../components/spectrum/spsound.h"
+#include "../components/spectrum/misc.h"
 
+extern int my_lastborder;
 extern int sp_nosync;
 extern int kbpos;
 extern unsigned char rom_imag[];
@@ -39,6 +41,7 @@ extern unsigned char rom_imag[];
 #include <dirent.h>
 
 extern int debug_trace;
+bool scaling_enabled = true;
 
 int keyboard=0; // on-screen keyboard active?
 int b_up=6,b_down=5,b_left=4,b_right=7;
@@ -62,8 +65,10 @@ int BatteryPercent = 100;
 uint16_t* menuFramebuffer = 0;
 
 unsigned short *buffer;  // screen buffer.
+const char* SD_BASE_PATH = "/sd";
 char path[256]="/sd/roms/spectrum";
 char file[256]="/sd/roms/spectrum/basic.sna";
+bool use_goemu = false;
 
 //----------------------------------------------------------------
 void print(short x, short y, const char *s)
@@ -242,6 +247,46 @@ int choose_file()
         } 
       }
   }
+}
+
+bool QuickSaveState(FILE *file)
+{
+   snsh_save(file, snsh_get_type(file));
+   {
+        uint8_t buf[32];
+        memset(buf, 0, 32);
+        buf[0] = b_up&0xff;
+        buf[1] = b_down&0xff;
+        buf[2] = b_left&0xff;
+        buf[3] = b_right&0xff;
+        buf[4] = b_a&0xff;
+        buf[5] = b_b&0xff;
+        buf[6] = b_select&0xff;
+        buf[7] = b_start&0xff;
+        fwrite(buf,sizeof(uint8_t),32,file);
+   }
+   return true;
+}
+
+bool QuickLoadState(FILE *file)
+{
+    snsh_load(file, snsh_get_type(file));
+    {
+        uint8_t buf[32];
+        memset(buf, 0, 32);
+        if (fread(buf,sizeof(uint8_t),32,file)>=8)
+        {
+            b_up = buf[0];
+            b_down = buf[1];
+            b_left = buf[2];
+            b_right = buf[3];
+            b_a = buf[4];
+            b_b = buf[5];
+            b_select = buf[6];
+            b_start = buf[7];
+        }
+   }
+    return true;
 }
 
 //----------------------------------------------------------------
@@ -433,7 +478,7 @@ int menu()
   odroid_audio_volume_set(0); // turn off sound when in menu...
   process_sound();
   
-  sp_lastborder=100; // force border re-draw after menu exit....
+  my_lastborder=100; // force border re-draw after menu exit....
   
   //debounce inital menu button press first....
   odroid_input_gamepad_read(&joystick);
@@ -533,16 +578,28 @@ void app_main(void)
     
     odroid_input_battery_level_init();
     
-    odroid_sdcard_open("/sd");   // map SD card.
+    odroid_sdcard_open(SD_BASE_PATH);   // map SD card.
     // see if there is a 'resume.txt' file, use it if so...
     
-    if ((fp=fopen("/sd/roms/spectrum/resume.txt","r"))) {
-      fgets(path,sizeof path,fp); path[strlen(path)-1]=0;
-      fgets(file, sizeof file,fp); file[strlen(file)-1]=0; 
-      fscanf(fp,"%i,%i,%i,%i,%i,%i,%i,%i\n",
-	     &b_up,&b_down,&b_left,&b_right,&b_a,&b_b,&b_select,&b_start);
-      fclose(fp);
-      printf("resume=%s\n",file);
+    char* romPath = odroid_settings_RomFilePath_get();
+    if (romPath)
+    {
+        if(check_ext(romPath, "z80") || check_ext(romPath, "sna"))
+        {
+            use_goemu = true;
+            strcpy(file, romPath);
+        }
+    }
+    if (!use_goemu)
+    {
+        if ((fp=fopen("/sd/roms/spectrum/resume.txt","r"))) {
+          fgets(path,sizeof path,fp); path[strlen(path)-1]=0;
+          fgets(file, sizeof file,fp); file[strlen(file)-1]=0; 
+          fscanf(fp,"%i,%i,%i,%i,%i,%i,%i,%i\n",
+    	     &b_up,&b_down,&b_left,&b_right,&b_a,&b_b,&b_select,&b_start);
+          fclose(fp);
+          printf("resume=%s\n",file);
+        }
     }
 
     // Audio hardware
@@ -550,8 +607,16 @@ void app_main(void)
   
     // Start Spectrum emulation here.......
     sp_init();
-    load_snapshot_file_type(file,-1);
+    QuickSaveSetBuffer( (void*)heap_caps_malloc(512*1024, MALLOC_CAP_SPIRAM | MALLOC_CAP_32BIT) );
+    if (use_goemu)
+    {
+        load_snapshot_file_type(file,-1);
+        DoStartupPost();
+    }
+    else
+    {
+        load_snapshot_file_type(file,-1);
+    }
     odroid_ui_debug_enter_loop();
-    odroid_audio_volume_set(ODROID_VOLUME_LEVEL0);
     start_spectemu();
 }

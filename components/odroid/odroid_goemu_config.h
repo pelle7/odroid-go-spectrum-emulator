@@ -1,0 +1,3 @@
+#pragma once
+
+#define ODROID_GOEMU_SAVEGAME_CREATE_DIR_ON_DEMAND

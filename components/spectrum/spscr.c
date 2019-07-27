@@ -69,7 +69,7 @@ struct rgb custom_colors[COLORNUM]={
 volatile int screen_visible = 1;
 volatile int accept_keys = 1;
 
-int lastborder=100,skip=0;
+int my_lastborder=100,skip=0;
 
 extern int buffpos;  // audio buffer position
 extern int keyboard; // on-screen keyboard active?
@@ -106,7 +106,7 @@ byte *update_screen_line(byte *scrp, int coli, int scri, int border,
   
   // first, see if border colour changed, update only if so (for speed..)
   if (scri>0 && coli==0) { // start of new frame....
-     if (border!=lastborder && skip==1) { // redraw border first..
+     if (border!=my_lastborder && skip==1) { // redraw border first..
       for (i=0; i<7360; i++) buffer[i]=colours[border];
       if (!keyboard) {
         send_reset_drawing(0, 0, 320, 24); //  320x24 pixels at top
@@ -122,7 +122,7 @@ byte *update_screen_line(byte *scrp, int coli, int scri, int border,
                 else send_reset_drawing(288, 0, 32, 192); 
       ili9341_write_frame_rectangle2(buffer,6144); //  32x192 pixels at right
           
-      lastborder=border; skip=0;
+      my_lastborder=border; skip=0;
      }
      
      // reset draw window for 256x192 main display...

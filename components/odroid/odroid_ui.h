@@ -91,6 +91,7 @@ bool odroid_ui_menu_ext(bool restart_menu, odroid_ui_func_window_init_def func_w
 void odroid_ui_debug_enter_loop();
 bool odroid_ui_ask(const char *text);
 int odroid_ui_ask_v2(const char *text, uint16_t color_fg, uint16_t color_bg, int selected_initial);
+void wait_for_key(int key, bool pressed);
 
 void QuickSaveSetBuffer(void* data);
 extern bool QuickLoadState(FILE *f);

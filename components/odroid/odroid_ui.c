@@ -19,6 +19,10 @@
 //#include <stddef.h>
 //#include <limits.h>
 #include "font8x8_basic.h"
+#include "odroid_goemu_config.h"
+#ifdef ODROID_GOEMU_SAVEGAME_CREATE_DIR_ON_DEMAND
+#include <dirent.h>
+#endif
 
 extern bool QuickLoadState(FILE *f);
 extern bool QuickSaveState(FILE *f);
@@ -183,13 +187,13 @@ void draw_fill(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t
 	ili9341_write_frame_rectangleLE(x, y, width, height, odroid_ui_framebuffer);
 }
 
-void wait_for_key(int last_key) {
+void wait_for_key(int key, bool pressed) {
 	while (true)
     {
         odroid_gamepad_state joystick;
         odroid_input_gamepad_read(&joystick);
         
-        if (!joystick.values[last_key]) {
+        if (joystick.values[key] == pressed) {
         		break;
         }
     }
@@ -280,7 +284,7 @@ bool odroid_ui_menu_ext(bool restart_menu, odroid_ui_func_window_init_def func_w
     if (shortcut_key) {
     		draw_empty_line();
     }
-    wait_for_key(last_key);
+    wait_for_key(last_key, false);
     printf("odroid_ui_menu! Continue\n");
     odroid_display_unlock();
     return restart_menu;
@@ -356,7 +360,7 @@ void odroid_ui_window_update(odroid_ui_window *window) {
 }
 
 void odroid_ui_func_update_speedup(odroid_ui_entry *entry) {
-	sprintf(entry->text, "%-9s: %d", "speedup", config_speedup);
+	sprintf(entry->text, "%-9s: %s", "speedup", config_speedup?"on":"off");
 }
 
 void odroid_ui_func_update_volume(odroid_ui_entry *entry) {
@@ -529,7 +533,7 @@ int exec_menu(bool *restart_menu, odroid_ui_func_window_init_def func_window_ini
         
         counter++;
     }
-    wait_for_key(last_key);
+    wait_for_key(last_key, false);
     odroid_ui_window_clear(&window);
     for (int i = 0; i < window.entry_count; i++) {
         free(window.entries[i]);
@@ -540,7 +544,6 @@ int exec_menu(bool *restart_menu, odroid_ui_func_window_init_def func_window_ini
 void odroid_ui_debug_enter_loop() {
    printf("odroid_ui_debug_enter_loop: go\n");
    prepare();
-   config_speedup = false;
 }
 
 bool MyQuickSaveState() {
@@ -639,7 +642,7 @@ int odroid_ui_ask_v2(const char *text, uint16_t color, uint16_t color_bg, int se
         
         usleep(20*1000UL);
     }
-    wait_for_key(last_key);
+    wait_for_key(last_key, false);
     return rc;
 }
 
@@ -670,7 +673,7 @@ bool odroid_ui_ask(const char *text)
         
         usleep(20*1000UL);
     }
-    wait_for_key(last_key);
+    wait_for_key(last_key, false);
     return rc;
 }
 
@@ -682,16 +685,18 @@ void SaveState()
     char* romPath = odroid_settings_RomFilePath_get();
     if (romPath)
     {
-        char* fileName = odroid_util_GetFileName(romPath);
-        if (!fileName) abort();
+        odroid_display_lock();
+        odroid_display_drain_spi();
 
-        char* pathName = odroid_sdcard_create_savefile_path(SD_BASE_PATH, fileName);
+        if (!romPath) abort();
+
+        char* pathName = odroid_sdcard_create_savefile_path_v2(romPath);
         if (!pathName) abort();
 
         FILE* f = fopen(pathName, "wb");
         if (f == NULL)
         {
-            /*
+#ifdef ODROID_GOEMU_SAVEGAME_CREATE_DIR_ON_DEMAND
             char *index = strrchr(pathName, '/');
             *index = '\0';
             DIR* dir = opendir(pathName);
@@ -713,7 +718,7 @@ void SaveState()
                printf("%s: fopen save failed: '%s'\n", __func__, pathName);
                abort();
             }
-            */
+#endif
             printf("%s: fopen save failed: '%s' ; Can't create file.\n", __func__, pathName);
             abort();
         }
@@ -721,9 +726,9 @@ void SaveState()
         fclose(f);
 
         printf("%s: savestate OK.\n", __func__);
+        odroid_display_unlock();
 
         free(pathName);
-        free(fileName);
         free(romPath);
     } else
     {
@@ -733,13 +738,15 @@ void SaveState()
 
 void LoadState()
 {
-    char* romName = odroid_settings_RomFilePath_get();
-    if (romName)
+    char* romPath = odroid_settings_RomFilePath_get();
+    if (romPath)
     {
-        char* fileName = odroid_util_GetFileName(romName);
-        if (!fileName) abort();
+        odroid_display_lock();
+        odroid_display_drain_spi();
 
-        char* pathName = odroid_sdcard_create_savefile_path(SD_BASE_PATH, fileName);
+        if (!romPath) abort();
+
+        char* pathName = odroid_sdcard_create_savefile_path_v2(romPath);
         if (!pathName) abort();
 
         FILE* f = fopen(pathName, "rb");
@@ -754,10 +761,9 @@ void LoadState()
 
             printf("LoadState: loadstate OK.\n");
         }
-
+        odroid_display_unlock();
         free(pathName);
-        free(fileName);
-        free(romName);
+        free(romPath);
     }
     else
     {
@@ -834,7 +840,9 @@ void DoReboot(bool save)
     if (!joystick.values[ODROID_INPUT_START] && save) {
        SaveState();
     }
+    odroid_display_lock();
     odroid_sdcard_close();
+    odroid_display_unlock();
 
     gpio_set_level(GPIO_NUM_2, 0);
     // Set menu application

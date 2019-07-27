@@ -326,6 +326,15 @@ static void snsh_sna_save(FILE *fp)
   SP += 2;
 }
 
+int snsh_get_type(const char *filename)
+{
+  int type;
+  if(check_ext(filenamebuf, "z80")) type = SN_Z80;
+  else if(check_ext(filenamebuf, "sna")) type = SN_SNA;
+  else type = SN_Z80;
+  return type;
+}
+
 #define GET_DATA(c) { \
   if(!datalen) break;        \
   c = sngetc(fp);             \
@@ -497,8 +506,8 @@ static void snsh_z80_load(SNFILE *fp)
     else {
       if(snread(z80_proc.mem + 0x4000, 0xC000, fp) != 0xC000) 
 	put_msg("Warning: Snapshot file too short");
-      else if(sngetc(fp) != EOF) 
-	put_msg("Warning: Snapshot file too long");
+      // else if(sngetc(fp) != EOF) 
+	  //     put_msg("Warning: Snapshot file too long");
     }
 
     PCH = z80.pch;
@@ -557,8 +566,8 @@ void snsh_sna_load(SNFILE *fp)
 
   if(snread(z80_proc.mem+0x4000, 0xC000, fp) != 0xC000) 
     put_msg("Warning: Snapshot file too short");
-  else if(sngetc(fp) != EOF) 
-    put_msg("Warning: Snapshot file too long");
+  // else if(sngetc(fp) != EOF) 
+  //  put_msg("Warning: Snapshot file too long");
 
   LOAD_NORMAL_REGS(sna);
 
@@ -584,6 +593,21 @@ void snsh_sna_load(SNFILE *fp)
   z80_proc.haltstate = 0;
 
   sp_init_screen_mark();
+}
+
+void snsh_load(FILE *fp, int type)
+{
+  SNFILE snfil;
+  snfil.isfile = 1;
+  snfil.fp = fp;
+  if(type == SN_SNA) snsh_sna_load(&snfil);
+  else if(type == SN_Z80) snsh_z80_load(&snfil);
+}
+
+void snsh_save(FILE *fp, int type)
+{
+    if(type == SN_SNA) snsh_sna_save(fp);
+    else if(type == SN_Z80) snsh_z80_save(fp);
 }
 
 static void cleanup_qsnap(void)

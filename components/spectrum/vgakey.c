@@ -28,6 +28,8 @@
 #include <stdlib.h>
 #include "../odroid/odroid_input.h"
 #include "../odroid/odroid_audio.h"
+#include "../odroid/odroid_display.h"
+#include "../odroid/odroid_ui.h"
 
 extern void keyboard_init();
 extern void keyboard_close();
@@ -69,6 +71,43 @@ const int map[40]={
 
 static char kbstate[LASTKEYCODE];
 
+
+extern void DoMenuHome(bool save);
+extern void draw_keyboard();
+extern void setup_buttons();
+extern bool use_goemu;
+extern int my_lastborder;
+extern int sp_nosync;
+bool menu_restart = false;
+int menuButtonFrameCount = -10;
+
+void menu_keyboard_update(odroid_ui_entry *entry) {
+    sprintf(entry->text, "%-9s: %s", "keyboard", keyboard?"on":"off");
+}
+
+odroid_ui_func_toggle_rc menu_keyboard_toggle(odroid_ui_entry *entry, odroid_gamepad_state *joystick) {
+    keyboard=!keyboard;
+    return ODROID_UI_FUNC_TOGGLE_RC_MENU_CLOSE;
+}
+
+void menu_keyboard_configure_update(odroid_ui_entry *entry) {
+    sprintf(entry->text, "%-9s", "keyboard mapping");
+}
+
+odroid_ui_func_toggle_rc menu_keyboard_configure_toggle(odroid_ui_entry *entry, odroid_gamepad_state *joystick) {
+    if (!joystick->values[ODROID_INPUT_A]) return ODROID_UI_FUNC_TOGGLE_RC_NOTHING;
+    odroid_display_unlock();
+    wait_for_key(ODROID_INPUT_A, false);
+    setup_buttons();
+    odroid_display_lock();
+    return ODROID_UI_FUNC_TOGGLE_RC_MENU_CLOSE;
+}
+
+void menu_spectrum_init(odroid_ui_window *window) {
+    odroid_ui_create_entry(window, &menu_keyboard_update, &menu_keyboard_toggle);
+    odroid_ui_create_entry(window, &menu_keyboard_configure_update, &menu_keyboard_configure_toggle);
+}
+
 void keyboard_update()
 {
   odroid_gamepad_state joystick;
@@ -83,7 +122,12 @@ void keyboard_update()
   if (!pressed && joystick.values[ODROID_INPUT_VOLUME])
   {
     pressed=1;
-    odroid_audio_volume_change();
+    int keyboard_old = keyboard;
+    bool config_speedup_old = config_speedup;
+    menu_restart = odroid_ui_menu_ext(menu_restart, &menu_spectrum_init);
+    my_lastborder=100;
+    if (config_speedup_old != config_speedup) sp_nosync = config_speedup;
+    if (keyboard != keyboard_old) draw_keyboard();
   }
 
 //---------------------------------------   
@@ -98,7 +142,25 @@ void keyboard_update()
     if (joystick.values[ODROID_INPUT_B])      kbstate[map[b_b]]=1; 
     if (joystick.values[ODROID_INPUT_SELECT]) kbstate[map[b_select]]=1; 
     if (joystick.values[ODROID_INPUT_START])  kbstate[map[b_start]]=1;
-    if (joystick.values[ODROID_INPUT_MENU])   menu();
+    if (!use_goemu)
+    {
+        if (joystick.values[ODROID_INPUT_MENU])   menu();
+    }
+    else if (!joystick.values[ODROID_INPUT_MENU] && menuButtonFrameCount!=0)
+    {
+        if (menuButtonFrameCount>1)
+        {
+            DoMenuHome(false);
+        }
+        menuButtonFrameCount = 0;
+    } else if (joystick.values[ODROID_INPUT_MENU])
+    {
+        menuButtonFrameCount++;
+        if (menuButtonFrameCount > (60 * 1) / 2)
+        {
+            DoMenuHome(true);
+        }
+    }
   }
   else {
     if (!pressed && joystick.values[ODROID_INPUT_UP]) {     
@@ -123,7 +185,7 @@ void keyboard_update()
     if (joystick.values[ODROID_INPUT_START]) kbstate[map[38]]=1; // sym-shift
     
     if (joystick.values[ODROID_INPUT_B] ||
-        joystick.values[ODROID_INPUT_MENU]) {keyboard=0; sp_lastborder=100;}
+        joystick.values[ODROID_INPUT_MENU]) {keyboard=0; my_lastborder=100;}
     
         
   }

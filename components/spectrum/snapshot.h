@@ -45,4 +45,8 @@ extern void load_snapshot(void);
 extern void save_quick_snapshot(void);
 extern void load_quick_snapshot(void);
 
+extern int snsh_get_type(const char *filename);
+extern void snsh_save(FILE *fp, int type);
+extern void snsh_load(FILE *fp, int type);
+
 #endif /* SNAPSHOT_H */

@@ -737,7 +737,6 @@ void ili9341_write_frame_rectangleLE(short left, short top, short width, short h
     if (left < 0 || top < 0) abort();
     if (width < 1 || height < 1) abort();
 
-    odroid_display_lock();
     //xTaskToNotify = xTaskGetCurrentTaskHandle();
 
     send_reset_drawing(left, top, width, height);
@@ -774,7 +773,6 @@ void ili9341_write_frame_rectangleLE(short left, short top, short width, short h
             send_continue_line(line_buffer, width, 1);
         }
     }
-    odroid_display_unlock();
 }
 
 void display_tasktonotify_set(int value)
