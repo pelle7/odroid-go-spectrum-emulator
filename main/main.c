@@ -41,7 +41,6 @@ extern unsigned char rom_imag[];
 #include <dirent.h>
 
 extern int debug_trace;
-bool scaling_enabled = true;
 
 int keyboard=0; // on-screen keyboard active?
 int b_up=6,b_down=5,b_left=4,b_right=7;
@@ -617,6 +616,6 @@ void app_main(void)
     {
         load_snapshot_file_type(file,-1);
     }
-    odroid_ui_debug_enter_loop();
+    odroid_ui_enter_loop();
     start_spectemu();
 }

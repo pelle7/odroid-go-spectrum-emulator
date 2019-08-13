@@ -97,7 +97,7 @@ void menu_keyboard_configure_update(odroid_ui_entry *entry) {
 odroid_ui_func_toggle_rc menu_keyboard_configure_toggle(odroid_ui_entry *entry, odroid_gamepad_state *joystick) {
     if (!joystick->values[ODROID_INPUT_A]) return ODROID_UI_FUNC_TOGGLE_RC_NOTHING;
     odroid_display_unlock();
-    wait_for_key(ODROID_INPUT_A, false);
+    odroid_ui_wait_for_key(ODROID_INPUT_A, false);
     setup_buttons();
     odroid_display_lock();
     return ODROID_UI_FUNC_TOGGLE_RC_MENU_CLOSE;
